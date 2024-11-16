@@ -2,6 +2,7 @@
   "name": "graphql-project",
   "version": "1.0.0",
   "main": "server.js",
+  "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "nodemon server.js"
@@ -14,6 +15,8 @@
     "express": "^4.21.1",
     "graphql": "^16.9.0",
     "graphql-http": "^1.22.2",
+    "graphql-yoga": "^5.10.2",
+    "lodash": "^4.17.21",
     "ruru": "^2.0.0-beta.13"
   }
 }
