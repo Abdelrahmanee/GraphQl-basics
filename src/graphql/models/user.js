@@ -25,7 +25,10 @@ export const resolvers = {
         user: () => { return { name: "Asml ", id: 23 ,age :15 } }
     },
     Mutation: {
-        createUser: (obj , {user}) => {
+        createUser: async (obj , {user} , {mongo}) => {
+            const movies= await mongo.movies.find().toArray()
+            console.log(movies);
+            
             return {...user , id:12345}
         }
     },

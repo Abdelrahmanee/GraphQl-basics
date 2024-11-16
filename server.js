@@ -1,14 +1,20 @@
 import express from "express"
 // var createHandler  = require("graphql-http/lib/use/express")
 import { ruruHTML } from "ruru/server"
-
+import dotenv from 'dotenv'
 
 
 import { createSchema, createYoga } from 'graphql-yoga'
 import { schema } from "./src/graphql/index.js"
+import { setUpDataBase } from "./src/db/dbConnection.js"
 
+dotenv.config()
 const yoga = createYoga({
-  schema
+  schema,
+  context :async ()=>{
+    const mongo =await setUpDataBase()
+    return {mongo}
+  }
 })
 
 const app = express()
@@ -22,7 +28,9 @@ app.get("/", (_req, res) => {
 })
 
 // Start the server at port
-app.listen(4000)
+// dbConnection();
+app.listen(4000);
+
 console.log(`
 Api Running a GraphQL API server at http://localhost:4000/graphql
 Test: http://localhost:4000/graphql?query={hello,age}
