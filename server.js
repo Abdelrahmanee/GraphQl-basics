@@ -1,34 +1,82 @@
 var express = require("express")
 var { createHandler } = require("graphql-http/lib/use/express")
-var { buildSchema } = require("graphql")
+var { buildSchema, GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLID } = require("graphql")
 var { ruruHTML } = require("ruru/server")
 
 
 // Construct a schema, using GraphQL schema language
-var schema = buildSchema(`
-  type Query {
-    hello(name :String!): String
-    age: Int
-    weight :Float
-    isConfirmed:Boolean
-    _id :ID
-    hobbies :[String!]!
-  }
-`)
+// var schema = buildSchema(`
+//   type Query {
+//     hello(name :String!): String
+//     age: Int
+//     weight :Float
+//     isConfirmed:Boolean
+//     _id :ID
+//     hobbies :[String!]!
+//     user :User
+//     friends :[User]
+//   }
+//     type User{
+//     id: Int
+//     name :String
+//     }
+// `)
 
+const userType = new GraphQLObjectType({
+    name :"userType",
+    fields :{
+        name : {
+            type : GraphQLString,
+            resolve :(obj)=>{
+                return obj.name.trim()
+            }
+        },
+        _id : {type : GraphQLID}
+    }
+})
+const schema = new GraphQLSchema({
+    query :new GraphQLObjectType({
+        name :"Query",
+        fields :{
+            hello :{
+                type :GraphQLString,
+                resolve : ()=>{
+                    return "Hello yani ya amma"
+                }
+            },
+
+            getUser  :{
+                type : userType,
+                resolve :()=>{
+                    return {name : "    Abdo      " , _id:123}
+                }
+            }
+        }
+    })
+})
 // The root provides a resolver function for each API endpoint
-var root = {
-    hello( args) {
-        return "Hello " +args.name
-    },
-    age() {
-        return 123
-    },
-    weight : 77.5,
-    isConfirmed : true,
-    _id : 1232,
-    hobbies :["Abdo" , "null" , "kemo" ,"Emaam"]
-}
+// var root = {
+//     hello( args) {
+//         return "Hello " +args.name
+//     },
+//     age() {
+//         return 123
+//     },
+//     weight : 77.5,
+//     isConfirmed : true,
+//     _id : 1232,
+//     hobbies :["Abdo" , "null" , "kemo" ,"Emaam"],
+//     user : ()=>{
+//         return {id :1223  , name :"abdoo"}
+//     },
+//     friends : ()=>{
+//         return [
+//             {id :12  , name :"abdoo"},
+//             {id :1223  , name :"keom"},
+//             {id :54  , name :"messi"}
+//         ]
+//     }
+// }
 
 var app = express()
 
@@ -38,7 +86,6 @@ app.all(
     "/graphql",
     createHandler({
         schema: schema,
-        rootValue: root,
     })
 )
 // Serve the GraphiQL IDE.
