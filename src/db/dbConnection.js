@@ -10,7 +10,6 @@ dotenv.config()
 //         .catch(() => console.log("Error to connect to db"))
 // }
 
-console.log(process.env.CONNECTION_STRING);
 
 const client = new MongoClient(process.env.CONNECTION_STRING, {
     serverApi: {
