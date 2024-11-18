@@ -1,73 +1,101 @@
-
-
-
 import { ObjectId } from "mongodb";
+
 export const typeDef = /* GraphQL */ `
-
-    type Query{
-        comments:[Comment]
-        comment(_id:ID):Comment
-    }
-    type Mutation{
-        createComment(comment:newCommentInput!):Comment!
-        deleteComment(_id:ID!):Boolean!
-        updateComment(_id:ID! , updated_comment:updateCommentInput):Comment
+    type Query {
+        comments: [Comment]!
+        comment(_id: ID!): Comment
     }
 
-    input updateCommentInput{
-        text:String!
+    type Mutation {
+        createComment(comment: NewCommentInput!): Comment!
+        deleteComment(_id: ID!): Boolean!
+        updateComment(_id: ID!, updatedComment: UpdateCommentInput!): Comment
     }
 
-    type Comment{
-        _id:ID
-        email:String
-        text:String
-        user:User   
+    input UpdateCommentInput {
+        text: String!
     }
-    input newCommentInput{
-        text:String!
-        email:String
-        _id:ID
-    }
-`
 
+    type Comment {
+        _id: ID!
+        email: String
+        text: String
+        user: User
+    }
+
+    input NewCommentInput {
+        text: String!
+        email: String!
+    }
+`;
 
 export const resolvers = {
     Query: {
         comments: async (parent, args, { mongo }) => {
-            const comments = await mongo.comments.find().limit(20).toArray()
-            return comments
+            try {
+                const comments = await mongo.comments.find().limit(20).toArray();
+                return comments;
+            } catch (error) {
+                console.error("Failed to fetch comments:", error);
+                throw new Error("Could not fetch comments");
+            }
         },
         comment: async (parent, { _id }, { mongo }) => {
-            const comment = await mongo.comments.findOne({ _id: new ObjectId(_id) })
-            return comment
-        }
+            try {
+                const comment = await mongo.comments.findOne({ _id: new ObjectId(_id) });
+                if (!comment) {
+                    throw new Error("Comment not found");
+                }
+                return comment;
+            } catch (error) {
+                console.error("Failed to fetch comment:", error);
+                throw new Error("Could not fetch comment");
+            }
+        },
     },
     Mutation: {
         createComment: async (parent, { comment }, { mongo }) => {
-            const new_comment = await mongo.comments.insertOne(comment)
-            return { ...comment, _id: new_comment.insertedId };
+            try {
+                const newComment = await mongo.comments.insertOne(comment);
+                return { ...comment, _id: newComment.insertedId };
+            } catch (error) {
+                console.error("Failed to create comment:", error);
+                throw new Error("Could not create comment");
+            }
         },
         deleteComment: async (parent, { _id }, { mongo }) => {
             try {
-                const response = await mongo.users.deleteOne({ _id: new ObjectId(_id) });
+                const response = await mongo.comments.deleteOne({ _id: new ObjectId(_id) });
                 return response.deletedCount > 0;
-            } catch (err) {
-                console.error(err);
-                throw new Error("Failed to delete comment");
+            } catch (error) {
+                console.error("Failed to delete comment:", error);
+                throw new Error("Could not delete comment");
             }
         },
-        updateComment: async (parent, { _id, updated_comment }, { mongo }) => {                        
-            const response = await mongo.comments.updateOne(
-                { _id: new ObjectId(_id) },
-                { $set: { text: updated_comment.text } })
-            if (response.matchedCount === 0) throw new Error("User not found");
-            return mongo.comments.findOne({ _id: new ObjectId(_id) });
-        }
+        updateComment: async (parent, { _id, updatedComment }, { mongo }) => {
+            try {
+                const response = await mongo.comments.updateOne(
+                    { _id: new ObjectId(_id) },
+                    { $set: { text: updatedComment.text } }
+                );
+                if (response.matchedCount === 0) {
+                    throw new Error("Comment not found");
+                }
+                return mongo.comments.findOne({ _id: new ObjectId(_id) });
+            } catch (error) {
+                console.error("Failed to update comment:", error);
+                throw new Error("Could not update comment");
+            }
+        },
     },
     Comment: {
-        user: ({ email }, args, { mongo }) => {
-            return mongo.users.findOne({ email });
-        }
-    }
-}
+        user: async ({ email }, args, { mongo }) => {
+            try {
+                return await mongo.users.findOne({ email });
+            } catch (error) {
+                console.error("Failed to fetch user:", error);
+                return null;
+            }
+        },
+    },
+};
