@@ -12,6 +12,7 @@ export const typeDef = /* GraphQL */ `
       name: String!
       email: String!
       id: ID!
+      comments:[Comment]
    }
 
    type Mutation {
@@ -56,7 +57,7 @@ export const resolvers = {
     },
 
     Mutation: {
-        createUser: async (obj, { user }, { mongo }) => {
+        createUser: async (parent, { user }, { mongo }) => {
             try {
                 const response = await mongo.users.insertOne(user);
                 return { ...user, id: response.insertedId };
@@ -93,6 +94,8 @@ export const resolvers = {
 
     User: {
         id: (parent) => parent._id || parent.id,
-        name: (obj) => (obj.name ? obj.name.toUpperCase() : null),
+        name: (parent) => (parent.name ? parent.name.toUpperCase() : null),
+        comments :(parent ,args , {mongo})=> mongo.comments.find({email : parent.email})
+        
     },
 };

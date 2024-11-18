@@ -57,9 +57,7 @@ export const resolvers = {
                 throw new Error("Failed to delete comment");
             }
         },
-        updateComment: async (parent, { _id, updated_comment }, { mongo }) => {
-            console.log(parent);
-                        
+        updateComment: async (parent, { _id, updated_comment }, { mongo }) => {                        
             const response = await mongo.comments.updateOne(
                 { _id: new ObjectId(_id) },
                 { $set: { text: updated_comment.text } })
