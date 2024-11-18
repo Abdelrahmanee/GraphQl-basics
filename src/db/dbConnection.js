@@ -29,7 +29,8 @@ export async function setUpDataBase() {
             db,
             users: db.collection('users'),
             movies: db.collection('movies'),
-
+            comments: db.collection('comments'),
+            
         }
     } catch (err) {
         console.log("Error to setUp database");
